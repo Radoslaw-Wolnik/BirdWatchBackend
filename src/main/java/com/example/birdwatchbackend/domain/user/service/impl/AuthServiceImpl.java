@@ -48,11 +48,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+        String identifier = request.usernameOrEmail().trim();
+
+        User user = identifier.contains("@")
+                ? userRepository.findByEmail(identifier)
+                  .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"))
+                : userRepository.findByUsername(identifier)
+                  .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid credentials");
         }
+
         String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
         return new TokenResponse(token, "Bearer", 86400L);
     }
