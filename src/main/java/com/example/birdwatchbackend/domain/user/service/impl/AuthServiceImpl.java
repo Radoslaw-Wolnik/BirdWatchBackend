@@ -8,9 +8,11 @@ import com.example.birdwatchbackend.domain.user.dto.RegisterRequest;
 import com.example.birdwatchbackend.domain.user.dto.TokenResponse;
 import com.example.birdwatchbackend.domain.user.repository.UserRepository;
 import com.example.birdwatchbackend.domain.user.service.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -29,10 +31,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email already in use");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already in use");
         }
         if (userRepository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("Username already taken");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already taken");
         }
 
         User user = new User();
@@ -52,12 +54,12 @@ public class AuthServiceImpl implements AuthService {
 
         User user = identifier.contains("@")
                 ? userRepository.findByEmail(identifier)
-                  .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"))
+                  .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"))
                 : userRepository.findByUsername(identifier)
-                  .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+                  .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid credentials");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
         String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
