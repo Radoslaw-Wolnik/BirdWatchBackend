@@ -78,6 +78,13 @@
             <artifactId>hibernate-spatial</artifactId>
         </dependency>
 
+        <!-- MinIO client -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.6.0</version>
+        </dependency>
+
         <!-- OpenAPI / Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>
